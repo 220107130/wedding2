@@ -1,0 +1,802 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zhangir & Zhuldyz's Wedding</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600&display=swap">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            scroll-behavior: smooth;
+            background-color: #fcfaf7;
+            color: #333;
+            overflow-x: hidden;
+        }
+        h1, h2, h3, h4, h5 {
+            font-family: 'Cormorant Garamond', serif;
+        }
+        .section {
+            min-height: 100vh;
+            scroll-snap-align: start;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .nav-dot {
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.7);
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #d4af37;
+        }
+        .nav-dot.active {
+            background-color: #d4af37;
+            transform: scale(1.4);
+        }
+        .calendar-day {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            cursor: default;
+        }
+        .calendar-day.event {
+            background-color: #d4af37;
+            color: white;
+            font-weight: bold;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.7);
+        }
+        .calendar-day.empty {
+            visibility: hidden;
+        }
+        .btn {
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 1s ease, transform 1s ease;
+        }
+        .visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .gold-text {
+            color: #d4af37;
+        }
+        .green-accent {
+            color: #2e8b57;
+        }
+        .gold-border {
+            border: 2px solid #d4af37;
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .gold-divider {
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #d4af37, transparent);
+            width: 80%;
+            margin: 20px auto;
+        }
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .rotate-slow {
+            animation: rotate 20s linear infinite;
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .heartbeat {
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            25% { transform: scale(1.1); }
+            50% { transform: scale(1); }
+            75% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Realistic floral backgrounds */
+        .floral-bg-1 {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cpath fill='%232e8b57' fill-opacity='0.08' d='M300 300c-30-30-75-50-150-50s-120 20-150 50 20 75 50 150 50 120 50 150c30 30 75 50 150 50s120-20 150-50 -20-75-50-150-50-120-50-150z'/%3E%3Cpath fill='%23d4af37' fill-opacity='0.05' d='M300 300c30 30 50 75 50 150s-20 120-50 150-75-20-150-50-120-50-150-50c-30-30-50-75-50-150s20-120 50-150 75 20 150 50 120 50 150 50z'/%3E%3C/g%3E%3C/svg%3E");
+            background-size: 600px 600px;
+            opacity: 0.5;
+        }
+        
+        .floral-bg-2 {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='500' viewBox='0 0 500 500'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cpath stroke='%232e8b57' stroke-width='1' stroke-opacity='0.1' d='M250 250c0-50 25-100 75-150s100-75 150-75 50 50 50 150-25 100-75 150-100 75-150 75-50-50-50-150z'/%3E%3Cpath stroke='%23d4af37' stroke-width='1' stroke-opacity='0.1' d='M250 250c0 50-25 100-75 150s-100 75-150 75-50-50-50-150 25-100 75-150 100-75 150-75 50 50 50 150z'/%3E%3C/g%3E%3C/svg%3E");
+            background-size: 500px 500px;
+            opacity: 0.5;
+        }
+        
+        .lace-border {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 300 300'%3E%3Cpath fill='%23d4af37' fill-opacity='0.1' d='M150 0c-20 20-40 20-60 0-20 20-20 40 0 60-20 20-20 40 0 60-20 20-20 40 0 60-20 20-20 40 0 60-20 20-20 40 0 60 20-20 40-20 60 0 20-20 40-20 60 0 20-20 40-20 60 0 20-20 40-20 60 0 20-20 40-20 60-60 20-20 20-40 0-60 20-20 20-40 0-60 20-20 20-40 0-60 20-20 20-40 0-60 20-20 20-40 0-60-20 20-40 20-60 0-20 20-40 20-60 0-20 20-40 20-60 0-20 20-40 20-60 0z'/%3E%3C/svg%3E");
+            background-size: 300px 300px;
+            opacity: 0.7;
+        }
+        
+        .watercolor-bg {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='800' viewBox='0 0 800 800'%3E%3Cdefs%3E%3CradialGradient id='a' cx='400' cy='400' r='50%25' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' stop-color='%23ffffff'/%3E%3Cstop offset='.3' stop-color='%23ffffff' stop-opacity='.5'/%3E%3Cstop offset='1' stop-color='%23ffffff' stop-opacity='0'/%3E%3C/radialGradient%3E%3CradialGradient id='b' cx='400' cy='400' r='70%25' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' stop-color='%232e8b57' stop-opacity='.1'/%3E%3Cstop offset='.5' stop-color='%232e8b57' stop-opacity='.05'/%3E%3Cstop offset='1' stop-color='%232e8b57' stop-opacity='0'/%3E%3C/radialGradient%3E%3CradialGradient id='c' cx='400' cy='400' r='90%25' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' stop-color='%23d4af37' stop-opacity='.1'/%3E%3Cstop offset='.7' stop-color='%23d4af37' stop-opacity='.05'/%3E%3Cstop offset='1' stop-color='%23d4af37' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect fill='url(%23a)' width='800' height='800'/%3E%3Crect fill='url(%23b)' width='800' height='800'/%3E%3Crect fill='url(%23c)' width='800' height='800'/%3E%3C/svg%3E");
+            background-size: cover;
+            opacity: 0.8;
+        }
+        
+        /* Realistic floral elements */
+        .floral-corner-element {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            z-index: 0;
+            opacity: 0.8;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+        
+        .top-left-corner {
+            top: 0;
+            left: 0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 300 300'%3E%3Cg fill='none'%3E%3Cpath d='M10,150 Q50,50 150,10' stroke='%232e8b57' stroke-width='3' stroke-opacity='0.3'/%3E%3Cpath d='M20,150 Q60,60 150,20' stroke='%232e8b57' stroke-width='2' stroke-opacity='0.2'/%3E%3Cpath d='M30,120 Q60,70 120,30' stroke='%23d4af37' stroke-width='2' stroke-opacity='0.3'/%3E%3Cpath d='M40,100 Q70,70 100,40' stroke='%23d4af37' stroke-width='1' stroke-opacity='0.2'/%3E%3Cpath d='M50,150 C30,120 30,80 50,50 C80,30 120,30 150,50' stroke='%232e8b57' stroke-width='2' stroke-opacity='0.3' fill='%232e8b57' fill-opacity='0.05'/%3E%3Cpath d='M40,130 C25,100 25,70 40,40 C70,25 100,25 130,40' stroke='%23d4af37' stroke-width='1' stroke-opacity='0.3' fill='%23d4af37' fill-opacity='0.05'/%3E%3Ccircle cx='70' cy='70' r='15' fill='%232e8b57' fill-opacity='0.1'/%3E%3Ccircle cx='100' cy='40' r='10' fill='%23d4af37' fill-opacity='0.1'/%3E%3Ccircle cx='40' cy='100' r='10' fill='%23d4af37' fill-opacity='0.1'/%3E%3C/g%3E%3C/svg%3E");
+        }
+        
+        .top-right-corner {
+            top: 0;
+            right: 0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 300 300'%3E%3Cg fill='none'%3E%3Cpath d='M290,150 Q250,50 150,10' stroke='%232e8b57' stroke-width='3' stroke-opacity='0.3'/%3E%3Cpath d='M280,150 Q240,60 150,20' stroke='%232e8b57' stroke-width='2' stroke-opacity='0.2'/%3E%3Cpath d='M270,120 Q240,70 180,30' stroke='%23d4af37' stroke-width='2' stroke-opacity='0.3'/%3E%3Cpath d='M260,100 Q230,70 200,40' stroke='%23d4af37' stroke-width='1' stroke-opacity='0.2'/%3E%3Cpath d='M250,150 C270,120 270,80 250,50 C220,30 180,30 150,50' stroke='%232e8b57' stroke-width='2' stroke-opacity='0.3' fill='%232e8b57' fill-opacity='0.05'/%3E%3Cpath d='M260,130 C275,100 275,70 260,40 C230,25 200,25 170,40' stroke='%23d4af37' stroke-width='1' stroke-opacity='0.3' fill='%23d4af37' fill-opacity='0.05'/%3E%3Ccircle cx='230' cy='70' r='15' fill='%232e8b57' fill-opacity='0.1'/%3E%3Ccircle cx='200' cy='40' r='10' fill='%23d4af37' fill-opacity='0.1'/%3E%3Ccircle cx='260' cy='100' r='10' fill='%23d4af37' fill-opacity='0.1'/%3E%3C/g%3E%3C/svg%3E");
+            transform: scaleX(-1);
+        }
+        
+        .bottom-left-corner {
+            bottom: 0;
+            left: 0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 300 300'%3E%3Cg fill='none'%3E%3Cpath d='M10,150 Q50,250 150,290' stroke='%232e8b57' stroke-width='3' stroke-opacity='0.3'/%3E%3Cpath d='M20,150 Q60,240 150,280' stroke='%232e8b57' stroke-width='2' stroke-opacity='0.2'/%3E%3Cpath d='M30,180 Q60,230 120,270' stroke='%23d4af37' stroke-width='2' stroke-opacity='0.3'/%3E%3Cpath d='M40,200 Q70,230 100,260' stroke='%23d4af37' stroke-width='1' stroke-opacity='0.2'/%3E%3Cpath d='M50,150 C30,180 30,220 50,250 C80,270 120,270 150,250' stroke='%232e8b57' stroke-width='2' stroke-opacity='0.3' fill='%232e8b57' fill-opacity='0.05'/%3E%3Cpath d='M40,170 C25,200 25,230 40,260 C70,275 100,275 130,260' stroke='%23d4af37' stroke-width='1' stroke-opacity='0.3' fill='%23d4af37' fill-opacity='0.05'/%3E%3Ccircle cx='70' cy='230' r='15' fill='%232e8b57' fill-opacity='0.1'/%3E%3Ccircle cx='100' cy='260' r='10' fill='%23d4af37' fill-opacity='0.1'/%3E%3Ccircle cx='40' cy='200' r='10' fill='%23d4af37' fill-opacity='0.1'/%3E%3C/g%3E%3C/svg%3E");
+            transform: scaleY(-1);
+        }
+        
+        .bottom-right-corner {
+            bottom: 0;
+            right: 0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 300 300'%3E%3Cg fill='none'%3E%3Cpath d='M290,150 Q250,250 150,290' stroke='%232e8b57' stroke-width='3' stroke-opacity='0.3'/%3E%3Cpath d='M280,150 Q240,240 150,280' stroke='%232e8b57' stroke-width='2' stroke-opacity='0.2'/%3E%3Cpath d='M270,180 Q240,230 180,270' stroke='%23d4af37' stroke-width='2' stroke-opacity='0.3'/%3E%3Cpath d='M260,200 Q230,230 200,260' stroke='%23d4af37' stroke-width='1' stroke-opacity='0.2'/%3E%3Cpath d='M250,150 C270,180 270,220 250,250 C220,270 180,270 150,250' stroke='%232e8b57' stroke-width='2' stroke-opacity='0.3' fill='%232e8b57' fill-opacity='0.05'/%3E%3Cpath d='M260,170 C275,200 275,230 260,260 C230,275 200,275 170,260' stroke='%23d4af37' stroke-width='1' stroke-opacity='0.3' fill='%23d4af37' fill-opacity='0.05'/%3E%3Ccircle cx='230' cy='230' r='15' fill='%232e8b57' fill-opacity='0.1'/%3E%3Ccircle cx='200' cy='260' r='10' fill='%23d4af37' fill-opacity='0.1'/%3E%3Ccircle cx='260' cy='200' r='10' fill='%23d4af37' fill-opacity='0.1'/%3E%3C/g%3E%3C/svg%3E");
+            transform: scale(-1);
+        }
+        
+        /* Realistic flower decorations */
+        .flower-decoration {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            z-index: 0;
+            background-size: contain;
+            background-repeat: no-repeat;
+            opacity: 0.7;
+        }
+        
+        .flower-1 {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Cg fill='none'%3E%3Cpath d='M75,30 C85,10 105,10 115,30 C135,40 135,60 115,70 C105,90 85,90 75,70 C55,60 55,40 75,30' fill='%232e8b57' fill-opacity='0.15' stroke='%232e8b57' stroke-opacity='0.3' stroke-width='1'/%3E%3Cpath d='M75,40 C82,25 98,25 105,40 C120,47 120,63 105,70 C98,85 82,85 75,70 C60,63 60,47 75,40' fill='%23d4af37' fill-opacity='0.1' stroke='%23d4af37' stroke-opacity='0.2' stroke-width='1'/%3E%3Ccircle cx='75' cy='55' r='10' fill='%23d4af37' fill-opacity='0.2'/%3E%3Cpath d='M75,70 L75,120' stroke='%232e8b57' stroke-width='2' stroke-opacity='0.3'/%3E%3Cpath d='M75,85 L90,100' stroke='%232e8b57' stroke-width='1' stroke-opacity='0.3'/%3E%3Cpath d='M75,85 L60,100' stroke='%232e8b57' stroke-width='1' stroke-opacity='0.3'/%3E%3C/g%3E%3C/svg%3E");
+        }
+        
+        .flower-2 {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Cg fill='none'%3E%3Cpath d='M75,25 C60,25 50,10 50,0 C40,10 25,10 15,0 C15,15 0,25 0,35 C15,35 25,50 25,65 C35,50 50,50 65,65 C50,65 40,80 50,90 C60,80 75,80 85,90 C85,75 100,65 115,65 C100,55 100,40 115,35 C100,35 90,20 90,5 C80,20 65,20 75,25' fill='%23d4af37' fill-opacity='0.1' stroke='%23d4af37' stroke-opacity='0.2' stroke-width='1'/%3E%3Ccircle cx='75' cy='45' r='15' fill='%232e8b57' fill-opacity='0.1' stroke='%232e8b57' stroke-opacity='0.2' stroke-width='1'/%3E%3Ccircle cx='75' cy='45' r='5' fill='%23d4af37' fill-opacity='0.2'/%3E%3Cpath d='M75,60 L75,110' stroke='%232e8b57' stroke-width='2' stroke-opacity='0.3'/%3E%3C/g%3E%3C/svg%3E");
+        }
+        
+        .flower-3 {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Cg fill='none'%3E%3Cpath d='M75,20 C85,5 105,5 115,20 C130,30 130,50 115,60 C105,75 85,75 75,60 C60,50 60,30 75,20' fill='%23d4af37' fill-opacity='0.1' stroke='%23d4af37' stroke-opacity='0.2' stroke-width='1'/%3E%3Cpath d='M55,40 C65,25 85,25 95,40 C110,50 110,70 95,80 C85,95 65,95 55,80 C40,70 40,50 55,40' fill='%232e8b57' fill-opacity='0.1' stroke='%232e8b57' stroke-opacity='0.2' stroke-width='1'/%3E%3Cpath d='M95,40 C105,25 125,25 135,40 C150,50 150,70 135,80 C125,95 105,95 95,80 C80,70 80,50 95,40' fill='%232e8b57' fill-opacity='0.1' stroke='%232e8b57' stroke-opacity='0.2' stroke-width='1'/%3E%3Ccircle cx='75' cy='55' r='10' fill='%23d4af37' fill-opacity='0.2'/%3E%3Cpath d='M75,80 L75,130' stroke='%232e8b57' stroke-width='2' stroke-opacity='0.3'/%3E%3C/g%3E%3C/svg%3E");
+        }
+        
+        /* Wedding rings decoration */
+        .wedding-rings {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cg fill='none'%3E%3Ccircle cx='80' cy='100' r='40' stroke='%23d4af37' stroke-width='8' stroke-opacity='0.4'/%3E%3Ccircle cx='120' cy='100' r='40' stroke='%23d4af37' stroke-width='8' stroke-opacity='0.4'/%3E%3C/g%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+            width: 200px;
+            height: 200px;
+            position: absolute;
+            opacity: 0.6;
+        }
+        
+        /* Elegant divider */
+        .elegant-divider {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='50' viewBox='0 0 200 50'%3E%3Cg fill='none'%3E%3Cpath d='M0,25 L80,25' stroke='%23d4af37' stroke-width='1' stroke-opacity='0.7'/%3E%3Cpath d='M120,25 L200,25' stroke='%23d4af37' stroke-width='1' stroke-opacity='0.7'/%3E%3Cpath d='M85,10 C95,0 105,0 115,10 C125,20 125,30 115,40 C105,50 95,50 85,40 C75,30 75,20 85,10' stroke='%23d4af37' stroke-width='1' stroke-opacity='0.7' fill='%23d4af37' fill-opacity='0.1'/%3E%3Ccircle cx='100' cy='25' r='5' fill='%232e8b57' fill-opacity='0.3'/%3E%3C/g%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            width: 200px;
+            height: 50px;
+            margin: 20px auto;
+        }
+        
+        /* Watercolor splash */
+        .watercolor-splash {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 300 300'%3E%3Cdefs%3E%3CradialGradient id='splash1' cx='150' cy='150' r='150' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' stop-color='%232e8b57' stop-opacity='0.2'/%3E%3Cstop offset='0.5' stop-color='%232e8b57' stop-opacity='0.1'/%3E%3Cstop offset='1' stop-color='%232e8b57' stop-opacity='0'/%3E%3C/radialGradient%3E%3CradialGradient id='splash2' cx='150' cy='150' r='100' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' stop-color='%23d4af37' stop-opacity='0.1'/%3E%3Cstop offset='0.7' stop-color='%23d4af37' stop-opacity='0.05'/%3E%3Cstop offset='1' stop-color='%23d4af37' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cpath d='M150,50 C180,80 220,80 250,50 C280,80 280,120 250,150 C280,180 280,220 250,250 C220,280 180,280 150,250 C120,280 80,280 50,250 C20,220 20,180 50,150 C20,120 20,80 50,50 C80,20 120,20 150,50' fill='url(%23splash1)'/%3E%3Cpath d='M150,100 C170,120 190,120 210,100 C230,120 230,140 210,160 C230,180 230,200 210,220 C190,240 170,240 150,220 C130,240 110,240 90,220 C70,200 70,180 90,160 C70,140 70,120 90,100 C110,80 130,80 150,100' fill='url(%23splash2)'/%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+            width: 300px;
+            height: 300px;
+            position: absolute;
+            opacity: 0.7;
+        }
+        
+        /* Envelope decoration */
+        .envelope-decoration {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cg fill='none'%3E%3Cpath d='M20,40 L180,40 L180,160 L20,160 Z' stroke='%23d4af37' stroke-width='3' stroke-opacity='0.4' fill='%23d4af37' fill-opacity='0.05'/%3E%3Cpath d='M20,40 L100,100 L180,40' stroke='%23d4af37' stroke-width='3' stroke-opacity='0.4'/%3E%3Cpath d='M20,160 L80,100' stroke='%23d4af37' stroke-width='3' stroke-opacity='0.4'/%3E%3Cpath d='M180,160 L120,100' stroke='%23d4af37' stroke-width='3' stroke-opacity='0.4'/%3E%3Cpath d='M60,80 L140,80 L140,120 L60,120 Z' stroke='%232e8b57' stroke-width='2' stroke-opacity='0.3' fill='%232e8b57' fill-opacity='0.05'/%3E%3C/g%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+            width: 200px;
+            height: 200px;
+            position: absolute;
+            opacity: 0.5;
+        }
+        
+        /* Calendar decoration */
+        .calendar-decoration {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cg fill='none'%3E%3Crect x='20' y='20' width='160' height='160' stroke='%23d4af37' stroke-width='3' stroke-opacity='0.4' fill='%23d4af37' fill-opacity='0.05'/%3E%3Cline x1='20' y1='60' x2='180' y2='60' stroke='%23d4af37' stroke-width='3' stroke-opacity='0.4'/%3E%3Cline x1='60' y1='20' x2='60' y2='180' stroke='%23d4af37' stroke-width='1' stroke-opacity='0.4'/%3E%3Cline x1='100' y1='20' x2='100' y2='180' stroke='%23d4af37' stroke-width='1' stroke-opacity='0.4'/%3E%3Cline x1='140' y1='20' x2='140' y2='180' stroke='%23d4af37' stroke-width='1' stroke-opacity='0.4'/%3E%3Cline x1='20' y1='100' x2='180' y2='100' stroke='%23d4af37' stroke-width='1' stroke-opacity='0.4'/%3E%3Cline x1='20' y1='140' x2='180' y2='140' stroke='%23d4af37' stroke-width='1' stroke-opacity='0.4'/%3E%3Ccircle cx='100' cy='100' r='15' fill='%232e8b57' fill-opacity='0.3'/%3E%3C/g%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+            width: 200px;
+            height: 200px;
+            position: absolute;
+            opacity: 0.5;
+        }
+        
+        /* Clock decoration */
+        .clock-decoration {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cg fill='none'%3E%3Ccircle cx='100' cy='100' r='80' stroke='%23d4af37' stroke-width='3' stroke-opacity='0.4' fill='%23d4af37' fill-opacity='0.05'/%3E%3Ccircle cx='100' cy='100' r='75' stroke='%232e8b57' stroke-width='1' stroke-opacity='0.3'/%3E%3Cline x1='100' y1='100' x2='100' y2='40' stroke='%23d4af37' stroke-width='3' stroke-opacity='0.4'/%3E%3Cline x1='100' y1='100' x2='140' y2='100' stroke='%232e8b57' stroke-width='3' stroke-opacity='0.3'/%3E%3Ccircle cx='100' cy='100' r='5' fill='%23d4af37' fill-opacity='0.4'/%3E%3C/g%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+            width: 200px;
+            height: 200px;
+            position: absolute;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="confetti-canvas"></canvas>
+    
+    <!-- Navigation Dots -->
+    <div class="fixed right-8 top-1/2 transform -translate-y-1/2 z-50 hidden md:flex flex-col">
+        <div class="nav-dot active" data-section="intro"></div>
+        <div class="nav-dot" data-section="invitation"></div>
+        <div class="nav-dot" data-section="calendar"></div>
+        <div class="nav-dot" data-section="countdown"></div>
+        <div class="nav-dot" data-section="rsvp"></div>
+    </div>
+
+    <!-- Intro Section -->
+    <section id="intro" class="section relative">
+        <!-- Background with watercolor effect -->
+        <div class="absolute inset-0 watercolor-bg"></div>
+        
+        <!-- Floral corners -->
+        <div class="floral-corner-element top-left-corner"></div>
+        <div class="floral-corner-element top-right-corner"></div>
+        <div class="floral-corner-element bottom-left-corner"></div>
+        <div class="floral-corner-element bottom-right-corner"></div>
+        
+        <!-- Wedding rings decoration -->
+        <div class="wedding-rings absolute top-20 left-1/2 transform -translate-x-1/2 rotate-slow"></div>
+        
+        <!-- Flower decorations -->
+        <div class="flower-decoration flower-1 absolute" style="top: 15%; left: 10%;"></div>
+        <div class="flower-decoration flower-2 absolute" style="bottom: 15%; right: 10%;"></div>
+        <div class="flower-decoration flower-3 absolute" style="top: 20%; right: 15%;"></div>
+        
+        <div class="container mx-auto text-center z-10 fade-in">
+            <div class="glass-effect rounded-xl p-8 md:p-12 max-w-3xl mx-auto">
+                <h3 class="text-xl md:text-2xl green-accent mb-4">We're getting married</h3>
+                <h1 class="text-5xl md:text-7xl font-semibold mb-8 gold-text">Zhangir & Zhuldyz</h1>
+                <div class="elegant-divider"></div>
+                <h2 class="text-2xl md:text-3xl mb-4">16.08.2025</h2>
+                <p class="text-lg md:text-xl">"Anashym" restaurant, Kaztalov village</p>
+                <div class="mt-16">
+                    <button class="btn bg-[#2e8b57] text-white px-8 py-3 rounded-full text-lg hover:bg-[#236b42] border-2 border-[#d4af37]" onclick="scrollToSection('invitation')">
+                        View Invitation
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Invitation Section -->
+    <section id="invitation" class="section relative">
+        <!-- Background with floral pattern -->
+        <div class="absolute inset-0 floral-bg-1"></div>
+        
+        <!-- Watercolor splash decoration -->
+        <div class="watercolor-splash absolute" style="top: 10%; right: 10%;"></div>
+        
+        <!-- Flower decorations -->
+        <div class="flower-decoration flower-2 absolute" style="bottom: 15%; left: 5%;"></div>
+        <div class="flower-decoration flower-3 absolute" style="top: 20%; left: 15%;"></div>
+        
+        <div class="container mx-auto max-w-3xl text-center z-10 fade-in">
+            <h2 class="text-4xl md:text-5xl font-semibold mb-8 gold-text">Our Invitation</h2>
+            <div class="glass-effect p-8 md:p-12 rounded-xl gold-border relative overflow-hidden">
+                <!-- Lace border decoration -->
+                <div class="absolute inset-0 lace-border opacity-20"></div>
+                
+                <p class="text-lg md:text-xl italic mb-6 green-accent">With joy in our hearts,</p>
+                <p class="text-lg md:text-xl mb-6">
+                    We, Zhangir and Zhuldyz, invite you to share in our happiness as we unite in marriage.
+                </p>
+                <div class="elegant-divider"></div>
+                <p class="text-lg md:text-xl mb-6">
+                    Your presence at our wedding ceremony and celebration would make our special day complete.
+                </p>
+                <p class="text-lg md:text-xl mb-6">
+                    Join us for an evening of love, laughter, and cherished memories at "Anashym" restaurant in Kaztalov village.
+                </p>
+                <div class="elegant-divider"></div>
+                <p class="text-lg md:text-xl italic green-accent">With love and appreciation,</p>
+                <h3 class="text-2xl md:text-3xl mt-4 gold-text">Zhangir & Zhuldyz</h3>
+            </div>
+        </div>
+    </section>
+
+    <!-- Calendar Section -->
+    <section id="calendar" class="section relative">
+        <!-- Background with floral pattern -->
+        <div class="absolute inset-0 floral-bg-2"></div>
+        
+        <!-- Calendar decoration -->
+        <div class="calendar-decoration absolute" style="top: 10%; left: 10%;"></div>
+        
+        <!-- Flower decorations -->
+        <div class="flower-decoration flower-1 absolute" style="bottom: 20%; right: 10%;"></div>
+        <div class="flower-decoration flower-3 absolute" style="top: 15%; right: 20%;"></div>
+        
+        <div class="container mx-auto max-w-3xl text-center z-10 fade-in">
+            <h2 class="text-4xl md:text-5xl font-semibold mb-8 gold-text">Save the Date</h2>
+            <div class="glass-effect p-6 md:p-10 rounded-xl gold-border relative">
+                <!-- Watercolor splash decoration -->
+                <div class="watercolor-splash absolute" style="top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.15; z-index: -1;"></div>
+                
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl md:text-3xl font-medium green-accent">August 2025</h3>
+                </div>
+                <div class="grid grid-cols-7 gap-2 mb-4">
+                    <div class="text-sm font-medium text-gray-500">Sun</div>
+                    <div class="text-sm font-medium text-gray-500">Mon</div>
+                    <div class="text-sm font-medium text-gray-500">Tue</div>
+                    <div class="text-sm font-medium text-gray-500">Wed</div>
+                    <div class="text-sm font-medium text-gray-500">Thu</div>
+                    <div class="text-sm font-medium text-gray-500">Fri</div>
+                    <div class="text-sm font-medium text-gray-500">Sat</div>
+                </div>
+                <div class="grid grid-cols-7 gap-2">
+                    <!-- Empty cells for days before August 1 -->
+                    <div class="calendar-day empty"></div>
+                    <div class="calendar-day empty"></div>
+                    <div class="calendar-day empty"></div>
+                    <div class="calendar-day empty"></div>
+                    <div class="calendar-day empty"></div>
+                    <div class="calendar-day">1</div>
+                    <div class="calendar-day">2</div>
+                    
+                    <div class="calendar-day">3</div>
+                    <div class="calendar-day">4</div>
+                    <div class="calendar-day">5</div>
+                    <div class="calendar-day">6</div>
+                    <div class="calendar-day">7</div>
+                    <div class="calendar-day">8</div>
+                    <div class="calendar-day">9</div>
+                    
+                    <div class="calendar-day">10</div>
+                    <div class="calendar-day">11</div>
+                    <div class="calendar-day">12</div>
+                    <div class="calendar-day">13</div>
+                    <div class="calendar-day">14</div>
+                    <div class="calendar-day">15</div>
+                    <div class="calendar-day event heartbeat" id="wedding-day">16</div>
+                    
+                    <div class="calendar-day">17</div>
+                    <div class="calendar-day">18</div>
+                    <div class="calendar-day">19</div>
+                    <div class="calendar-day">20</div>
+                    <div class="calendar-day">21</div>
+                    <div class="calendar-day">22</div>
+                    <div class="calendar-day">23</div>
+                    
+                    <div class="calendar-day">24</div>
+                    <div class="calendar-day">25</div>
+                    <div class="calendar-day">26</div>
+                    <div class="calendar-day">27</div>
+                    <div class="calendar-day">28</div>
+                    <div class="calendar-day">29</div>
+                    <div class="calendar-day">30</div>
+                    
+                    <div class="calendar-day">31</div>
+                </div>
+                <div class="mt-8 text-lg">
+                    <p class="gold-text font-semibold">Saturday, August 16, 2025</p>
+                    <p class="mt-2">Ceremony begins at 4:00 PM</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Countdown Section -->
+    <section id="countdown" class="section relative">
+        <!-- Background with watercolor effect -->
+        <div class="absolute inset-0 watercolor-bg"></div>
+        
+        <!-- Clock decoration -->
+        <div class="clock-decoration absolute" style="bottom: 10%; right: 10%;"></div>
+        
+        <!-- Flower decorations -->
+        <div class="flower-decoration flower-2 absolute" style="top: 15%; left: 10%;"></div>
+        <div class="flower-decoration flower-1 absolute" style="bottom: 20%; left: 15%;"></div>
+        
+        <div class="container mx-auto max-w-3xl text-center z-10 fade-in">
+            <h2 class="text-4xl md:text-5xl font-semibold mb-8 gold-text">Counting Down</h2>
+            <div class="glass-effect p-8 md:p-12 rounded-xl gold-border relative">
+                <!-- Watercolor splash decoration -->
+                <div class="watercolor-splash absolute" style="top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.15; z-index: -1;"></div>
+                
+                <div class="grid grid-cols-4 gap-4">
+                    <div class="p-4 bg-white bg-opacity-50 rounded-lg border border-[#d4af37]">
+                        <div id="days" class="text-4xl md:text-5xl font-bold gold-text">--</div>
+                        <div class="text-[#2e8b57] mt-2 font-medium">Days</div>
+                    </div>
+                    <div class="p-4 bg-white bg-opacity-50 rounded-lg border border-[#d4af37]">
+                        <div id="hours" class="text-4xl md:text-5xl font-bold gold-text">--</div>
+                        <div class="text-[#2e8b57] mt-2 font-medium">Hours</div>
+                    </div>
+                    <div class="p-4 bg-white bg-opacity-50 rounded-lg border border-[#d4af37]">
+                        <div id="minutes" class="text-4xl md:text-5xl font-bold gold-text">--</div>
+                        <div class="text-[#2e8b57] mt-2 font-medium">Minutes</div>
+                    </div>
+                    <div class="p-4 bg-white bg-opacity-50 rounded-lg border border-[#d4af37]">
+                        <div id="seconds" class="text-4xl md:text-5xl font-bold gold-text">--</div>
+                        <div class="text-[#2e8b57] mt-2 font-medium">Seconds</div>
+                    </div>
+                </div>
+                <div class="mt-8">
+                    <p class="text-lg">Until we say "I do"</p>
+                    <div class="elegant-divider"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- RSVP Section -->
+    <section id="rsvp" class="section relative">
+        <!-- Background with floral pattern -->
+        <div class="absolute inset-0 floral-bg-1"></div>
+        
+        <!-- Envelope decoration -->
+        <div class="envelope-decoration absolute" style="top: 10%; left: 10%;"></div>
+        
+        <!-- Flower decorations -->
+        <div class="flower-decoration flower-3 absolute" style="bottom: 15%; right: 10%;"></div>
+        <div class="flower-decoration flower-1 absolute" style="top: 20%; right: 15%;"></div>
+        
+        <div class="container mx-auto max-w-3xl text-center z-10 fade-in">
+            <h2 class="text-4xl md:text-5xl font-semibold mb-8 gold-text">RSVP</h2>
+            <div class="glass-effect p-8 md:p-12 rounded-xl gold-border relative">
+                <!-- Lace border decoration -->
+                <div class="absolute inset-0 lace-border opacity-20"></div>
+                
+                <p class="text-lg mb-6 green-accent">Please let us know if you'll be joining us on our special day.</p>
+                <form id="rsvp-form" class="text-left">
+                    <div class="mb-6">
+                        <label for="name" class="block text-gray-700 mb-2 font-medium">Full Name</label>
+                        <input type="text" id="name" class="w-full px-4 py-2 border border-[#d4af37] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2e8b57]" required>
+                    </div>
+                    <div class="mb-6">
+                        <label for="email" class="block text-gray-700 mb-2 font-medium">Email</label>
+                        <input type="email" id="email" class="w-full px-4 py-2 border border-[#d4af37] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2e8b57]" required>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 mb-2 font-medium">Will you attend?</label>
+                        <div class="flex space-x-4">
+                            <label class="flex items-center">
+                                <input type="radio" name="attendance" value="yes" class="mr-2 text-[#2e8b57]" required>
+                                <span>Joyfully Accept</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="attendance" value="no" class="mr-2 text-[#2e8b57]">
+                                <span>Regretfully Decline</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-6" id="guests-container" style="display: none;">
+                        <label for="guests" class="block text-gray-700 mb-2 font-medium">Number of Guests (including yourself)</label>
+                        <select id="guests" class="w-full px-4 py-2 border border-[#d4af37] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2e8b57]">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </div>
+                    <div class="mb-6">
+                        <label for="message" class="block text-gray-700 mb-2 font-medium">Message to the Couple (Optional)</label>
+                        <textarea id="message" rows="3" class="w-full px-4 py-2 border border-[#d4af37] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2e8b57]"></textarea>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn bg-[#2e8b57] text-white px-8 py-3 rounded-full text-lg hover:bg-[#236b42] border-2 border-[#d4af37]">
+                            Send RSVP
+                        </button>
+                    </div>
+                </form>
+                <div id="thank-you" class="hidden text-center py-8">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-[#2e8b57] mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h3 class="text-2xl font-semibold mb-2 gold-text">Thank You!</h3>
+                    <p class="text-lg">Your RSVP has been submitted successfully.</p>
+                    <p class="text-lg mt-4 green-accent">We look forward to celebrating with you!</p>
+                    <div class="elegant-divider"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Confetti effect
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        const confetti = [];
+        const confettiCount = 150;
+        const gravity = 0.5;
+        const terminalVelocity = 5;
+        const drag = 0.075;
+        const colors = [
+            { front: '#d4af37', back: '#c49f27' },  // Gold
+            { front: '#2e8b57', back: '#1e7b47' },  // Green
+            { front: '#ffffff', back: '#f0f0f0' }   // White
+        ];
+        
+        // Resize canvas
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+        
+        // Confetti piece
+        class ConfettiPiece {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 10 + 5;
+                this.weight = Math.random() * 1 + 1;
+                this.directionX = Math.random() * 2 - 1;
+                
+                // More realistic confetti movement
+                this.directionY = Math.random() * 5 + 3;
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.rotation = Math.random() * 360;
+                this.rotationSpeed = Math.random() * 10 - 5;
+                this.shape = Math.random() > 0.5 ? 'circle' : 'rect';
+            }
+            
+            update() {
+                this.directionY += this.weight;
+                this.x += this.directionX;
+                this.y += this.directionY;
+                this.rotation += this.rotationSpeed;
+                
+                if (this.y > canvas.height) {
+                    this.y = -this.size;
+                    this.directionY = Math.random() * 5 + 3;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+            
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation * Math.PI / 180);
+                
+                if (this.shape === 'circle') {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.size / 2, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color.front;
+                    ctx.fill();
+                } else {
+                    ctx.fillStyle = this.color.front;
+                    ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                }
+                
+                ctx.restore();
+            }
+        }
+        
+        // Initialize confetti
+        function initConfetti() {
+            for (let i = 0; i < confettiCount; i++) {
+                confetti.push(new ConfettiPiece(Math.random() * canvas.width, Math.random() * canvas.height));
+            }
+        }
+        
+        // Animation loop
+        function animateConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            for (let i = 0; i < confetti.length; i++) {
+                confetti[i].update();
+                confetti[i].draw();
+            }
+            
+            requestAnimationFrame(animateConfetti);
+        }
+        
+        // Initialize confetti on wedding day click
+        document.getElementById('wedding-day').addEventListener('click', () => {
+            confetti.length = 0;
+            initConfetti();
+        });
+        
+        // Initialize a few confetti pieces on load
+        for (let i = 0; i < 30; i++) {
+            confetti.push(new ConfettiPiece(Math.random() * canvas.width, Math.random() * canvas.height));
+        }
+        animateConfetti();
+        
+        // Countdown Timer
+        function updateCountdown() {
+            const weddingDate = new Date('August 16, 2025 16:00:00').getTime();
+            const now = new Date().getTime();
+            const timeLeft = weddingDate - now;
+            
+            if (timeLeft > 0) {
+                const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                
+                document.getElementById('days').innerText = days;
+                document.getElementById('hours').innerText = hours;
+                document.getElementById('minutes').innerText = minutes;
+                document.getElementById('seconds').innerText = seconds;
+            } else {
+                document.getElementById('days').innerText = '0';
+                document.getElementById('hours').innerText = '0';
+                document.getElementById('minutes').innerText = '0';
+                document.getElementById('seconds').innerText = '0';
+            }
+        }
+        
+        // Update countdown every second
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+        
+        // Navigation dots
+        const navDots = document.querySelectorAll('.nav-dot');
+        navDots.forEach(dot => {
+            dot.addEventListener('click', () => {
+                const section = dot.getAttribute('data-section');
+                scrollToSection(section);
+            });
+        });
+        
+        // Scroll to section
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            window.scrollTo({
+                top: section.offsetTop,
+                behavior: 'smooth'
+            });
+        }
+        
+        // Update active nav dot on scroll
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('.section');
+            const scrollPosition = window.scrollY + window.innerHeight / 2;
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.offsetHeight;
+                
+                if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+                    const sectionId = section.getAttribute('id');
+                    navDots.forEach(dot => {
+                        dot.classList.remove('active');
+                        if (dot.getAttribute('data-section') === sectionId) {
+                            dot.classList.add('active');
+                        }
+                    });
+                }
+            });
+        });
+        
+        // Fade in elements on scroll
+        function checkFadeElements() {
+            const fadeElements = document.querySelectorAll('.fade-in');
+            fadeElements.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                const elementBottom = element.getBoundingClientRect().bottom;
+                
+                if (elementTop < window.innerHeight - 100 && elementBottom > 0) {
+                    element.classList.add('visible');
+                }
+            });
+        }
+        
+        window.addEventListener('scroll', checkFadeElements);
+        window.addEventListener('load', checkFadeElements);
+        
+        // RSVP form
+        const rsvpForm = document.getElementById('rsvp-form');
+        const thankYou = document.getElementById('thank-you');
+        const guestsContainer = document.getElementById('guests-container');
+        
+        // Show/hide guests dropdown based on attendance
+        document.querySelectorAll('input[name="attendance"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.value === 'yes') {
+                    guestsContainer.style.display = 'block';
+                } else {
+                    guestsContainer.style.display = 'none';
+                }
+            });
+        });
+        
+        // Form submission
+        rsvpForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // In a real application, you would send this data to a server
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                attendance: document.querySelector('input[name="attendance"]:checked').value,
+                guests: document.getElementById('guests').value,
+                message: document.getElementById('message').value
+            };
+            
+            console.log('RSVP Submission:', formData);
+            
+            // Show thank you message
+            rsvpForm.style.display = 'none';
+            thankYou.classList.remove('hidden');
+            
+            // Trigger confetti celebration
+            confetti.length = 0;
+            initConfetti();
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93b848baf743e4c5',t:'MTc0NjUzMjQ4MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
